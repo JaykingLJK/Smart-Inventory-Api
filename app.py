@@ -24,6 +24,7 @@ app = Flask(__name__)
 
 @app.route('/listings', methods=['GET'])
 def checkInventory():
+    db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
     inventory_list = []
     check = ("SELECT id_Storage, item_name, expiry_date, quantity FROM Storage ORDER BY expiry_date")
@@ -33,7 +34,6 @@ def checkInventory():
         # inventory_list.append(Listing(item_name=item_name, expiry_date=expiry_date, quantity=quantity))
         item = {'id':id_Storage,'item':item_name, "expiry_date":str(expiry_date), "quantity":quantity}
         inventory_list.append(item)
-    db.close()
     return json.dumps(inventory_list)
 
 @app.route('/listings', methods=['POST'])
@@ -62,7 +62,6 @@ def addItem():
         cursor.execute(query, (item, date, amount))
         db.commit()
         print("Added a new item: {} of {} expiring by {:%d %b %Y}.".format(item, amount, date))
-    db.close()
     return json.dumps(data)
 
 @app.route('/listings', methods=['DELETE'])
@@ -83,7 +82,6 @@ def deleteItem():
     data = cursor.fetchall()
     if not data:
         # print("No such item in inventory.")
-        db.close()
         return "No such item in inventory.", 401
     else:
         query = ("SELECT quantity FROM Storage WHERE item_name = %s")
@@ -96,7 +94,6 @@ def deleteItem():
             total_amount_in_fridge += quantity_total
         if amount > total_amount_in_fridge:
             # print("Not enough items in inventory.")
-            db.close()
             return json.dumps(["not enough in inventory"])
         else:
             # print("Enough items: {} wanted, {} in storage.".format(amount_wanted, total_amount_in_fridge))
@@ -129,13 +126,12 @@ def deleteItem():
                         deleted_amount += amount
                         amount = 0
             # print("Delete {} of {} successfully!".format(item, amount_wanted))
-            db.close()
             res['lst'] = reslst
             return json.dumps(res)
 
 @app.route('/listings', methods=['PUT'])
 def updateItem():
     return 
-    
+
 if __name__ == "__main__":
     app.run(host='0.0.0.0')
