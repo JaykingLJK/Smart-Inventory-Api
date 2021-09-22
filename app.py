@@ -136,5 +136,6 @@ def deleteItem():
 @app.route('/listings', methods=['PUT'])
 def updateItem():
     return 
-
-app.run(debug=True, host='0.0.0.0')
+    
+if __name__ == "__main__":
+    app.run(host='0.0.0.0')
