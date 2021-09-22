@@ -125,7 +125,7 @@ class Listings(Resource):
                 return 'Success'
 
 
-api.add_resource(Listings, '/listings')  # add endpoints
+Api.add_resource(Listings, '/listings')  # add endpoints
 
 if __name__ == '__main__':
     api.run()  # run our Flask app
