@@ -5,6 +5,7 @@ import json
 from datetime import datetime, timedelta
 import requests
 from mysql.connector import cursor
+from werkzeug.wrappers import response
 
 config = {
   'user': 'admin',
@@ -25,47 +26,53 @@ app = Flask(__name__)
 def checkInventory():
     cursor = db.cursor(buffered=True)
     inventory_list = []
-    check = ("SELECT item_name, expiry_date, quantity FROM Storage ORDER BY expiry_date")
+    check = ("SELECT id_Storage, item_name, expiry_date, quantity FROM Storage ORDER BY expiry_date")
     cursor.execute(check)
-    for (item_name, expiry_date, quantity) in cursor:
+    for (id_Storage, item_name, expiry_date, quantity) in cursor:
         # print("{} of {} expiring by {:%d %b %Y}".format(item_name, quantity, expiry_date))
         # inventory_list.append(Listing(item_name=item_name, expiry_date=expiry_date, quantity=quantity))
-        item = {'item_name':item_name, "expiry_date":str(expiry_date), "quantity":quantity}
+        item = {'id':id_Storage,'item_name':item_name, "expiry_date":str(expiry_date), "quantity":quantity}
         inventory_list.append(item)
     db.close()
     return json.dumps(inventory_list)
 
 @app.route('/listings', methods=['POST'])
 def addItem():
-    if request.is_json:
-        item = request.form['item_name']
-        date = request.form['expiry_date']
-        amount = request.form['amount']
-        db = mysql.connector.connect(**config)
-        cursor = db.cursor(buffered=True)
-        # check if the item existed already or not.
-        check = ("SELECT item_name FROM Storage WHERE item_name = %s AND expiry_date = %s")
-        date = today + timedelta(days=date)
-        cursor.execute(check, (item, date,))
-        data = cursor.fetchall()
-        if data:
-            query = ("UPDATE Storage SET quantity = quantity + %s WHERE item_name = %s AND expiry_date = %s")
-            cursor.execute(query, (amount, item, date,))
-            db.commit()
-            print("Added an existing item: {} of {} expiring by {:%d %b %Y}.".format(item, amount, date))
-        else:
-            query = ("INSERT INTO Storage (item_name, expiry_date, quantity) VALUES (%s, %s, %s);")
-            cursor.execute(query, (item, date, amount))
-            db.commit()
-            print("Added a new item: {} of {} expiring by {:%d %b %Y}.".format(item, amount, date))
-        db.close()
-        return 'Success'
+    data = json.loads(request.data.decode('utf-8'))
+    # print(type(data))
+    # print(data)
+    # print('LOL')
+    item = data['item_name']
+    date = data['expiry_date']
+    amount = data['amount']
+    db = mysql.connector.connect(**config)
+    cursor = db.cursor(buffered=True)
+    # check if the item existed already or not.
+    check = ("SELECT item_name FROM Storage WHERE item_name = %s AND expiry_date = %s")
+    date = today + timedelta(days=date)
+    cursor.execute(check, (item, date,))
+    data = cursor.fetchall()
+    if data:
+        query = ("UPDATE Storage SET quantity = quantity + %s WHERE item_name = %s AND expiry_date = %s")
+        cursor.execute(query, (amount, item, date,))
+        db.commit()
+        print("Added an existing item: {} of {} expiring by {:%d %b %Y}.".format(item, amount, date))
     else:
-        return 'Failure'
+        query = ("INSERT INTO Storage (item_name, expiry_date, quantity) VALUES (%s, %s, %s);")
+        cursor.execute(query, (item, date, amount))
+        db.commit()
+        print("Added a new item: {} of {} expiring by {:%d %b %Y}.".format(item, amount, date))
+    db.close()
+    return 'Success'
+
+
+@app.route('/addlistings', methods=['G'])
+
 class Listing():
     def __init__(self, item_name, expiry_date, quantity):
 
         self.item_name = item_name
         self.expiry_date = expiry_date
         self.quantity = quantity
- 
+
+app.run(debug=True)
