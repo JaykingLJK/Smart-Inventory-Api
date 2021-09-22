@@ -34,6 +34,7 @@ def checkInventory():
         # inventory_list.append(Listing(item_name=item_name, expiry_date=expiry_date, quantity=quantity))
         item = {'id':id_Storage,'item':item_name, "expiry_date":str(expiry_date), "quantity":quantity}
         inventory_list.append(item)
+    db.close()
     return json.dumps(inventory_list)
 
 @app.route('/listings', methods=['POST'])
@@ -62,6 +63,7 @@ def addItem():
         cursor.execute(query, (item, date, amount))
         db.commit()
         print("Added a new item: {} of {} expiring by {:%d %b %Y}.".format(item, amount, date))
+    db.close()
     return json.dumps(data)
 
 @app.route('/listings', methods=['DELETE'])
@@ -82,6 +84,7 @@ def deleteItem():
     data = cursor.fetchall()
     if not data:
         # print("No such item in inventory.")
+        db.close()
         return "No such item in inventory.", 401
     else:
         query = ("SELECT quantity FROM Storage WHERE item_name = %s")
@@ -94,6 +97,7 @@ def deleteItem():
             total_amount_in_fridge += quantity_total
         if amount > total_amount_in_fridge:
             # print("Not enough items in inventory.")
+            db.close()
             return json.dumps(["not enough in inventory"])
         else:
             # print("Enough items: {} wanted, {} in storage.".format(amount_wanted, total_amount_in_fridge))
@@ -127,6 +131,7 @@ def deleteItem():
                         amount = 0
             # print("Delete {} of {} successfully!".format(item, amount_wanted))
             res['lst'] = reslst
+            db.close()
             return json.dumps(res)
 
 @app.route('/listings', methods=['PUT'])
