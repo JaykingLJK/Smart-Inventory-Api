@@ -65,7 +65,6 @@ def addItem():
     db.close()
     return json.dumps(data)
 
-
 @app.route('/listings', methods=['DELETE'])
 def deleteItem():
     res = {}
@@ -119,14 +118,14 @@ def deleteItem():
                         query = ("DELETE FROM Storage WHERE item_name = %s AND expiry_date = %s")
                         cursor.execute(query, (item, listing_expiry_date,))
                         db.commit()
-                        reslst.append({'id': id_Storage, 'item_name': item, 'amount': 0})
+                        reslst.append({'id': id_Storage, 'item': item, 'amount': 0, 'expiry_date':listing_expiry_date})
                         deleted_amount += amount_of_one_listing                        
                         amount -= amount_of_one_listing
                     else:
                         query = ("UPDATE Storage SET quantity = quantity - %s WHERE item_name = %s AND expiry_date = %s")
                         cursor.execute(query, (amount, item, listing_expiry_date,))
                         db.commit()
-                        reslst.append({'id': id_Storage, 'item_name': item, 'amount': amount_of_one_listing-amount})
+                        reslst.append({'id': id_Storage, 'item': item, 'amount': amount_of_one_listing-amount, 'expiry_date':listing_expiry_date})
                         deleted_amount += amount
                         amount = 0
             # print("Delete {} of {} successfully!".format(item, amount_wanted))
@@ -134,5 +133,8 @@ def deleteItem():
             res['lst'] = reslst
             return json.dumps(res)
 
+@app.route('/listings', methods=['PUT'])
+def updateItem():
+    return 
 
-app.run(debug=True)
+app.run(debug=True, host='0.0.0.0')
