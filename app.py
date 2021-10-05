@@ -151,7 +151,7 @@ def updateItem():
     print("Updated an existing item: {} of {} expiring by {:%d %b %Y}.".format(item, amount, date))
     return data
 
-@app.route('/recipes', method=['GET'])
+@app.route('/recipes', methods=['GET'])
 def checkRecipe():
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
@@ -165,7 +165,7 @@ def checkRecipe():
     db.close()
     return json.dump(recipe_list)
 
-@app.route('/recipes', method=['POST'])
+@app.route('/recipes', methods=['POST'])
 def addRecipe():
     data = json.loads(request.data.decode('utf-8'))
     name = data['name']
