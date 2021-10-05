@@ -23,7 +23,7 @@ threedays = today + timedelta(days=3)
 
 app = Flask(__name__)
 
-@app.route('/listings', methods=['GET'])
+@app.route('/listings', methods=['GET']) # done
 def checkInventory():
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
@@ -38,7 +38,7 @@ def checkInventory():
     db.close()
     return json.dumps(inventory_list)
 
-@app.route('/listings', methods=['POST'])
+@app.route('/listings', methods=['POST']) # done
 def addItem():
     data = json.loads(request.data.decode('utf-8'))
     # print(type(data))
@@ -67,7 +67,7 @@ def addItem():
     db.close()
     return json.dumps(data)
 
-@app.route('/listings', methods=['DELETE'])
+@app.route('/listings', methods=['DELETE']) # done
 def deleteItem():
     res = {}
     reslst = []
@@ -135,7 +135,7 @@ def deleteItem():
             db.close()
             return json.dumps(res)
 
-@app.route('/listings', methods=['PUT'])
+@app.route('/listings', methods=['PUT']) # testing
 def updateItem():
     data = json.loads(request.data.decode('utf-8'))
     id = data['id']
@@ -151,7 +151,7 @@ def updateItem():
     print("Updated an existing item: {} of {} expiring by {:%d %b %Y}.".format(item, amount, date))
     return data
 
-@app.route('/recipes', methods=['GET'])
+@app.route('/recipes', methods=['GET']) # done
 def checkRecipe():
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
@@ -165,7 +165,7 @@ def checkRecipe():
     db.close()
     return json.dumps(recipe_list)
 
-@app.route('/recipes', methods=['POST'])
+@app.route('/recipes', methods=['POST']) # testing
 def addRecipe():
     data = json.loads(request.data.decode('utf-8'))
     name = data['name']
