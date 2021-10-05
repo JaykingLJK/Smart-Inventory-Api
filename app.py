@@ -23,7 +23,7 @@ threedays = today + timedelta(days=3)
 
 app = Flask(__name__)
 
-@app.route('/listings', methods=['GET']) # done
+@app.route('/listings', methods=['GET']) # Get the list of items in the fridge. done
 def checkInventory():
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
@@ -38,7 +38,7 @@ def checkInventory():
     db.close()
     return json.dumps(inventory_list)
 
-@app.route('/listings', methods=['POST']) # done
+@app.route('/listings', methods=['POST']) # Check in an item into the fridge. done
 def addItem():
     data = json.loads(request.data.decode('utf-8'))
     # print(type(data))
@@ -67,8 +67,8 @@ def addItem():
     db.close()
     return json.dumps(data)
 
-@app.route('/listings', methods=['DELETE']) # done
-def deleteItem():
+@app.route('/listings', methods=['DELETE']) # Check out an item from the fridge. testing
+def takeItem():
     res = {}
     reslst = []
     data = json.loads(request.data.decode('utf-8'))
@@ -86,7 +86,7 @@ def deleteItem():
     if not data:
         # print("No such item in inventory.")
         db.close()
-        return "No such item in inventory.", 401
+        return json.dumps(["No such item in inventory."])
     else:
         query = ("SELECT quantity FROM Storage WHERE item_name = %s")
         cursor.execute(query, (item,))
@@ -135,23 +135,23 @@ def deleteItem():
             db.close()
             return json.dumps(res)
 
-@app.route('/listings', methods=['PUT']) # testing
+@app.route('/listings', methods=['PUT']) # Change the information of a listing. testing
 def updateItem():
     data = json.loads(request.data.decode('utf-8'))
-    id = data['id']
+    id_Storage = data['id']
     item = data['item']
     amount = data['amount']
     date = data['expiry_date']
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
     query = ("UPDATE Storage SET item_name = %s, quantity = %s, expiry_date = %s WHERE id_Storage = %s")
-    cursor.execute(query, (item, amount, date, id))
+    cursor.execute(query, (item, amount, date, id_Storage))
     db.commit()
     db.close()
     print("Updated an existing item: {} of {} expiring by {:%d %b %Y}.".format(item, amount, date))
     return data
 
-@app.route('/recipes', methods=['GET']) # done
+@app.route('/recipes', methods=['GET']) # Get the list of recipes in the database. done
 def checkRecipe():
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
@@ -165,7 +165,7 @@ def checkRecipe():
     db.close()
     return json.dumps(recipe_list)
 
-@app.route('/recipes', methods=['POST']) # testing
+@app.route('/recipes', methods=['POST']) # Add another recipe into the database. testing
 def addRecipe():
     data = json.loads(request.data.decode('utf-8'))
     name = data['name']
@@ -191,6 +191,53 @@ def addRecipe():
         print("Added a new recipe: {} needs {}, {}, {}, {}.".format(name, ingredient_1, ingredient_2, ingredient_3, ingredient_4))
     db.close()
     return json.dumps(data)
+
+@app.route('/recipes', methods=['DELETE']) # Delete an existing recipe from the database. testing
+def deleteRecipe():
+    data = json.loads(request.data.decode('utf-8'))
+    id_Recipe = data['id']
+    db = mysql.connector.connect(**config)
+    cursor = db.cursor(buffered=True)
+    check = ("SELECT recipe_name FROM Recipe WHERE id_Recipe = %s")
+    cursor.execute(check, (id_Recipe,))
+    ok = cursor.fetchall()
+    if ok:
+        query = ("DELETE FROM Recipe WHERE id_Recipe = %s")
+        cursor.execute(query)
+        db.commit()
+        db.close()
+        return json.dumps(data)
+    else:
+        print("No such recipe.")
+        return json.dumps(["No such recipe."])
+
+@app.route('/recipes', methods=['PUT']) # Change an existing recipe's information. testing
+def updateRecipe():
+    data = json.loads(request.data.decode('utf-8'))
+    id_Recipe = data['id']
+    name = data['name']
+    ingredient_1 = data['ingredient_1']
+    ingredient_2 = data['ingredient_2']
+    ingredient_3 = data['ingredient_3']
+    ingredient_4 = data['ingredient_4']
+    db = mysql.connector.connect(**config)
+    cursor = db.cursor(buffered=True)
+    # check if the recipe exists or not
+    check = ("SELECT recipe_name FROM Recipe WHERE id_Recipe = %s")
+    cursor.execute(check, (id_Recipe))
+    ok = cursor.fetchall()
+    if ok:
+        query = ("UPDATE Recipe SET recipe_name = %s, ingredient_1 = %s, ingredient_2 = %s, ingredient_3 = %s, ingredient_4 = %s WHERE id_Recipe = %s")
+        cursor.execute(query, (name, ingredient_1, ingredient_2, ingredient_3, ingredient_4, id_Recipe))
+        db.commit()
+        print("Changed an existing recipe: {} needs {}, {}, {}, {}.".format(name, ingredient_1, ingredient_2, ingredient_3, ingredient_4))
+        db.close()
+        return json.dumps(data)
+    else:
+        print("No such recipe.")
+        db.close()
+        return json.dumps(["No such recipe."])
+
 
 
 
