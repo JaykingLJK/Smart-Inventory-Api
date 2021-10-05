@@ -163,7 +163,7 @@ def checkRecipe():
         recipe_list.append(a_recipe)
     db.commit()
     db.close()
-    return json.dumps(recipe_list, fp=)
+    return json.dumps(recipe_list)
 
 @app.route('/recipes', methods=['POST'])
 def addRecipe():
