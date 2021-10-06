@@ -21,6 +21,11 @@ today = datetime.strptime(today, '%Y-%m-%d %H:%M:%S')
 tomorrow = today + timedelta(days=1)
 threedays = today + timedelta(days=3)
 
+def inDate(stringdate):
+    datedate = datetime.strptime(stringdate, "%Y-%m-%d %H:%M:%S").replace(minute=0, hour=0, second=0)
+    return datedate
+
+
 app = Flask(__name__)
 
 @app.route('/listings', methods=['GET']) # Get the list of items in the fridge. done
@@ -41,20 +46,16 @@ def checkInventory():
 @app.route('/listings', methods=['POST']) # Check in an item into the fridge. done
 def addItem():
     data = json.loads(request.data.decode('utf-8'))
-    # print(type(data))
-    # print(data)
-    # print('LOL')
     item = data['item']
-    date = data['expiry_date']
+    date = inDate(data['expiry_date'])
     amount = data['amount']
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
     # check if the item existed already or not.
     check = ("SELECT item_name FROM Storage WHERE item_name = %s AND expiry_date = %s")
-    date = today + timedelta(days=date)
     cursor.execute(check, (item, date,))
-    data = cursor.fetchall()
-    if data:
+    have = cursor.fetchall()
+    if have:
         query = ("UPDATE Storage SET quantity = quantity + %s WHERE item_name = %s AND expiry_date = %s")
         cursor.execute(query, (amount, item, date,))
         db.commit()
@@ -67,7 +68,7 @@ def addItem():
     db.close()
     return json.dumps(data)
 
-@app.route('/listings', methods=['DELETE']) # Check out an item from the fridge. testing
+@app.route('/listings', methods=['DELETE']) # Check out an item from the fridge. done
 def takeItem():
     res = {}
     reslst = []
@@ -82,8 +83,8 @@ def takeItem():
     # check if the item exists or not.
     check = ("SELECT item_name FROM Storage WHERE item_name = %s")
     cursor.execute(check, (item,))
-    data = cursor.fetchall()
-    if not data:
+    have = cursor.fetchall()
+    if not have:
         # print("No such item in inventory.")
         db.close()
         return json.dumps(["No such item in inventory."])
@@ -120,14 +121,14 @@ def takeItem():
                         query = ("DELETE FROM Storage WHERE item_name = %s AND expiry_date = %s")
                         cursor.execute(query, (item, listing_expiry_date,))
                         db.commit()
-                        reslst.append({'id': id_Storage, 'item': item, 'amount': 0, 'expiry_date':listing_expiry_date})
+                        reslst.append({'id': id_Storage, 'item': item, 'amount': 0, 'expiry_date':str(listing_expiry_date)})
                         deleted_amount += amount_of_one_listing                        
                         amount -= amount_of_one_listing
                     else:
                         query = ("UPDATE Storage SET quantity = quantity - %s WHERE item_name = %s AND expiry_date = %s")
                         cursor.execute(query, (amount, item, listing_expiry_date,))
                         db.commit()
-                        reslst.append({'id': id_Storage, 'item': item, 'amount': amount_of_one_listing-amount, 'expiry_date':listing_expiry_date})
+                        reslst.append({'id': id_Storage, 'item': item, 'amount': amount_of_one_listing-amount, 'expiry_date':str(listing_expiry_date)})
                         deleted_amount += amount
                         amount = 0
             # print("Delete {} of {} successfully!".format(item, amount_wanted))
@@ -135,13 +136,13 @@ def takeItem():
             db.close()
             return json.dumps(res)
 
-@app.route('/listings', methods=['PUT']) # Change the information of a listing. testing
+@app.route('/listings', methods=['PUT']) # Change the information of a listing. done
 def updateItem():
     data = json.loads(request.data.decode('utf-8'))
     id_Storage = data['id']
     item = data['item']
     amount = data['amount']
-    date = data['expiry_date']
+    date = inDate(data['expiry_date'])
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
     query = ("UPDATE Storage SET item_name = %s, quantity = %s, expiry_date = %s WHERE id_Storage = %s")
@@ -165,7 +166,7 @@ def checkRecipe():
     db.close()
     return json.dumps(recipe_list)
 
-@app.route('/recipes', methods=['POST']) # Add another recipe into the database. testing
+@app.route('/recipes', methods=['POST']) # Add another recipe into the database. done
 def addRecipe():
     data = json.loads(request.data.decode('utf-8'))
     name = data['name']
@@ -177,9 +178,9 @@ def addRecipe():
     cursor = db.cursor(buffered=True)
     # check if the recipe exists or not
     check = ("SELECT recipe_name FROM Recipe WHERE recipe_name = %s")
-    cursor.execute(check, (name))
-    data = cursor.fetchall()
-    if data:
+    cursor.execute(check, (name,))
+    have = cursor.fetchall()
+    if have:
         query = ("UPDATE Recipe SET ingredient_1 = %s, ingredient_2 = %s, ingredient_3 = %s, ingredient_4 = %s WHERE recipe_name = %s")
         cursor.execute(query, (ingredient_1, ingredient_2, ingredient_3, ingredient_4, name))
         db.commit()
@@ -192,7 +193,7 @@ def addRecipe():
     db.close()
     return json.dumps(data)
 
-@app.route('/recipes', methods=['DELETE']) # Delete an existing recipe from the database. testing
+@app.route('/recipes', methods=['DELETE']) # Delete an existing recipe from the database. done
 def deleteRecipe():
     data = json.loads(request.data.decode('utf-8'))
     id_Recipe = data['id']
@@ -203,7 +204,7 @@ def deleteRecipe():
     ok = cursor.fetchall()
     if ok:
         query = ("DELETE FROM Recipe WHERE id_Recipe = %s")
-        cursor.execute(query)
+        cursor.execute(query, (id_Recipe,))
         db.commit()
         db.close()
         return json.dumps(data)
@@ -211,7 +212,7 @@ def deleteRecipe():
         print("No such recipe.")
         return json.dumps(["No such recipe."])
 
-@app.route('/recipes', methods=['PUT']) # Change an existing recipe's information. testing
+@app.route('/recipes', methods=['PUT']) # Change an existing recipe's information. done
 def updateRecipe():
     data = json.loads(request.data.decode('utf-8'))
     id_Recipe = data['id']
@@ -224,9 +225,9 @@ def updateRecipe():
     cursor = db.cursor(buffered=True)
     # check if the recipe exists or not
     check = ("SELECT recipe_name FROM Recipe WHERE id_Recipe = %s")
-    cursor.execute(check, (id_Recipe))
-    ok = cursor.fetchall()
-    if ok:
+    cursor.execute(check, (id_Recipe,))
+    have = cursor.fetchall()
+    if have:
         query = ("UPDATE Recipe SET recipe_name = %s, ingredient_1 = %s, ingredient_2 = %s, ingredient_3 = %s, ingredient_4 = %s WHERE id_Recipe = %s")
         cursor.execute(query, (name, ingredient_1, ingredient_2, ingredient_3, ingredient_4, id_Recipe))
         db.commit()
@@ -238,37 +239,38 @@ def updateRecipe():
         db.close()
         return json.dumps(["No such recipe."])
 
-@app.route('/recom', methods=['GET']) # Get recommended list of recipes depending on the expiring foods. In progress
+@app.route('/recom', methods=['GET']) # Get recommended list of recipes depending on the expiring foods. done
 def recomRecipe():
     recom_recipe_list = []
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
-    expiring_list = []
-    check = ("SELECT id_Storage FROM Storage WHERE expiry_date = %s ORDER BY expiry_date")
-    print(tomorrow)
+    expiring_lst = []
+    check = ("SELECT item_name FROM Storage WHERE expiry_date = %s ORDER BY expiry_date")
     cursor.execute(check, (tomorrow,))
-    for (id_Storage) in cursor:
-        expiring_list.append({'id':id_Storage})
+    for (item_name,) in cursor:
+        expiring_lst.append(item_name)
+    print('Expiring_lst:', expiring_lst)
     inventory_lst = []
     check = ("SELECT item_name FROM Storage ORDER BY expiry_date")
     cursor.execute(check)
     for (item_name,) in cursor:
         item = item_name
         inventory_lst.append(item)
+    print("Inventory_lst:", inventory_lst)
     recipe_lst = []
     check = ("SELECT id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4 FROM Recipe ORDER BY id_Recipe")
     cursor.execute(check)
     for (id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4) in cursor:
         a_recipe = {'id':id_Recipe, 'name':recipe_name, 'ingredient':[ingredient_1, ingredient_2, ingredient_3, ingredient_4]}
-        print(a_recipe)
         recipe_lst.append(a_recipe)
+    print('Recipe_lst:', recipe_lst)
     for recipe in recipe_lst:
-        print(recipe['ingredient'])
-        if item in recipe['ingredient']:
-            for ingre in recipe['ingredient']:
-                print(ingre)
-                if all(foo in inventory_lst for foo in ingre):
-                    recom_recipe_list.append(recipe)
+        for item in expiring_lst:
+            if item in recipe['ingredient']:
+                if all(foo in inventory_lst for foo in [x for x in recipe['ingredient'] if x is not None]):
+                    print(recipe)
+                    if recipe not in recom_recipe_list:
+                        recom_recipe_list.append(recipe) 
     return json.dumps(recom_recipe_list)
 
 
