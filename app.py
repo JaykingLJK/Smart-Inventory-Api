@@ -238,7 +238,38 @@ def updateRecipe():
         db.close()
         return json.dumps(["No such recipe."])
 
-
+@app.route('/recom', methods=['GET']) # Get recommended list of recipes depending on the expiring foods. In progress
+def recomRecipe():
+    recom_recipe_list = []
+    db = mysql.connector.connect(**config)
+    cursor = db.cursor(buffered=True)
+    expiring_list = []
+    check = ("SELECT id_Storage FROM Storage WHERE expiry_date = %s ORDER BY expiry_date")
+    print(tomorrow)
+    cursor.execute(check, (tomorrow,))
+    for (id_Storage) in cursor:
+        expiring_list.append({'id':id_Storage})
+    inventory_lst = []
+    check = ("SELECT item_name FROM Storage ORDER BY expiry_date")
+    cursor.execute(check)
+    for (item_name,) in cursor:
+        item = item_name
+        inventory_lst.append(item)
+    recipe_lst = []
+    check = ("SELECT id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4 FROM Recipe ORDER BY id_Recipe")
+    cursor.execute(check)
+    for (id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4) in cursor:
+        a_recipe = {'id':id_Recipe, 'name':recipe_name, 'ingredient':[ingredient_1, ingredient_2, ingredient_3, ingredient_4]}
+        print(a_recipe)
+        recipe_lst.append(a_recipe)
+    for recipe in recipe_lst:
+        print(recipe['ingredient'])
+        if item in recipe['ingredient']:
+            for ingre in recipe['ingredient']:
+                print(ingre)
+                if all(foo in inventory_lst for foo in ingre):
+                    recom_recipe_list.append(recipe)
+    return json.dumps(recom_recipe_list)
 
 
 if __name__ == "__main__":

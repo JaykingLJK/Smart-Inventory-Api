@@ -7,3 +7,7 @@ data = {
 response = requests.delete(url=url,json=data)
 print(response.content)
 
+# a = ['a', None, None]
+# for b in a:
+#     if b != a:
+#         print('None')
