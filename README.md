@@ -1,2 +1,2 @@
 # Smart-Inventory-App
-This is the app for smart inventory system.
+This is the api system for smart inventory system.
