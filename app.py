@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 import requests
 from mysql.connector import cursor
 from werkzeug.wrappers import response
+from flask_cors import CORS
 
 config = {
   'user': 'admin',
@@ -27,6 +28,7 @@ def inDate(stringdate):
 
 
 app = Flask(__name__)
+CORS(app)
 
 @app.route('/listings', methods=['GET']) # Get the list of items in the fridge. done
 def checkInventory():
