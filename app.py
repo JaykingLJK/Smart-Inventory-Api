@@ -138,6 +138,26 @@ def takeItem():
             db.close()
             return json.dumps(res)
 
+@app.route('listingdetails', methods=['DELETE'])
+def deleteItem():
+    data = json.loads(request.data.decode('utf-8'))
+    itemId = data['id']
+    db = mysql.connector.connect(**config)
+    cursor = db.cursor(buffered=True)
+    check = ("SELECT item_name FROM Storage WHERE id_Storage = %s")
+    cursor.execute(check, (itemId,))
+    have = cursor.fetchall()
+    if not have:
+        # print("No such item in inventory.")
+        db.close()
+        return json.dumps(["No such item in inventory."])
+    else:
+        query = ("DELETE FROM Storage WHERE id_Storage = %s")
+        cursor.execute(query, (itemId,))
+        db.commit()
+        db.close()
+        return json.dumps(data)
+
 @app.route('/listings', methods=['PUT']) # Change the information of a listing. done
 def updateItem():
     data = json.loads(request.data.decode('utf-8'))

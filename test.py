@@ -26,11 +26,11 @@ data_2_POST = {
     "ingredient_4": None
 }
 data_2_DELETE = {
-    "id": 5
+    "id": 1
 }
 
 data_2_PUT = {
-    "id":5,
+    "id":1,
     "name": "nonono",
     "ingredient_1": "nononono",
     "ingredient_2": None,
@@ -44,7 +44,7 @@ data_2_PUT = {
 # response_2_GET = requests.get(url=url_2)
 # response_2_POST = requests.post(url=url_2, json=data_2_POST)
 # response_2_PUT = requests.put(url=url_2, json=data_2_PUT)
-response_2_DELETE = requests.delete(url=url_2, json=data_2_DELETE)
+# response_2_DELETE = requests.delete(url=url_2, json=data_2_DELETE)
 # response_3_GET = requests.get(url=url_3)
 
 # print(response_1_GET.content)
@@ -54,7 +54,7 @@ response_2_DELETE = requests.delete(url=url_2, json=data_2_DELETE)
 # print(response_2_GET.content)
 # print(response_2_POST.content)
 # print(response_2_PUT.content)
-print(response_2_DELETE.content)
+# print(response_2_DELETE.content)
 # print(response_3_GET.content)
 
 
