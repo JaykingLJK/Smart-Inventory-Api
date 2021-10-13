@@ -138,7 +138,7 @@ def takeItem():
             db.close()
             return json.dumps(res)
 
-@app.route('listingdetails', methods=['DELETE'])
+@app.route('/listingdetails', methods=['DELETE'])
 def deleteItem():
     data = json.loads(request.data.decode('utf-8'))
     itemId = data['id']
