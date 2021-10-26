@@ -182,6 +182,14 @@ def checkRecipe():
     check = ("SELECT id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4 FROM Recipe ORDER BY id_Recipe")
     cursor.execute(check)
     for (id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4) in cursor:
+        if ingredient_1 == None:
+            ingredient_1 = 'Null'
+        if ingredient_2 == None:
+            ingredient_2 = 'Null'
+        if ingredient_3 == None:
+            ingredient_3 = 'Null'
+        if ingredient_4 == None:
+            ingredient_4 = 'Null'
         a_recipe = {'id':id_Recipe, 'name':recipe_name, 'ingredient_1':ingredient_1, 'ingredient_2':ingredient_2, 'ingredient_3':ingredient_3, 'ingredient_4':ingredient_4}
         recipe_list.append(a_recipe)
     db.commit()
@@ -283,6 +291,14 @@ def recomRecipe():
     check = ("SELECT id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4 FROM Recipe ORDER BY id_Recipe")
     cursor.execute(check)
     for (id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4) in cursor:
+        if ingredient_1 == None:
+            ingredient_1 = 'Null'
+        if ingredient_2 == None:
+            ingredient_2 = 'Null'
+        if ingredient_3 == None:
+            ingredient_3 = 'Null'
+        if ingredient_4 == None:
+            ingredient_4 = 'Null'
         a_recipe = {'id':id_Recipe, 'name':recipe_name, 'ingredient':[ingredient_1, ingredient_2, ingredient_3, ingredient_4]}
         recipe_lst.append(a_recipe)
     print('Recipe_lst:', recipe_lst)
