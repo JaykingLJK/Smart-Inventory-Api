@@ -305,7 +305,7 @@ def recomRecipe():
     for recipe in recipe_lst:
         for item in expiring_lst:
             if item in recipe['ingredient']:
-                if all(foo in inventory_lst for foo in [x for x in recipe['ingredient'] if x is not None]):
+                if all(foo in inventory_lst for foo in [x for x in recipe['ingredient'] if x != "Null"]):
                     print(recipe)
                     if recipe not in recom_recipe_list:
                         recom_recipe_list.append(recipe) 
