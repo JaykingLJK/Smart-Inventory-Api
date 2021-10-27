@@ -275,8 +275,8 @@ def recomRecipe():
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
     expiring_lst = []
-    check = ("SELECT item_name FROM Storage WHERE expiry_date = %s ORDER BY expiry_date")
-    cursor.execute(check, (tomorrow,))
+    check = ("SELECT item_name FROM Storage WHERE expiry_date < %s ORDER BY expiry_date")
+    cursor.execute(check, (threedays,))
     for (item_name,) in cursor:
         expiring_lst.append(item_name)
     print('Expiring_lst:', expiring_lst)
@@ -319,8 +319,8 @@ def getspecificRecipe():
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
     expiring_lst = []
-    check = ("SELECT item_name FROM Storage WHERE expiry_date = %s ORDER BY expiry_date")
-    cursor.execute(check, (tomorrow,))
+    check = ("SELECT item_name FROM Storage WHERE expiry_date < %s ORDER BY expiry_date")
+    cursor.execute(check, (threedays,))
     for (item_name,) in cursor:
         expiring_lst.append(item_name)
     print('Expiring_lst:', expiring_lst)
