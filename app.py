@@ -360,10 +360,7 @@ def getExpiry():
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
     expiring_list = []
-    # check = ("SELECT item_name, expiry_date, quantity FROM Storage WHERE expiry_date < %s ORDER BY expiry_date")
-    # print(threedays)
-    # cursor.execute(check, (threedays,))
-    check = ("SELECT item_name, expiry_date, quantity FROM Storage WHERE expiry_date < %s ORDER BY expiry_date")
+    check = ("SELECT id_Storage, item_name, expiry_date, quantity FROM Storage WHERE expiry_date < %s ORDER BY expiry_date")
     print(tomorrow)
     cursor.execute(check, (tomorrow,))
     for (id_Storage, item_name, expiry_date, quantity) in cursor:
