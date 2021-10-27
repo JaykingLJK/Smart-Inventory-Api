@@ -311,7 +311,51 @@ def recomRecipe():
                         recom_recipe_list.append(recipe) 
     return json.dumps(recom_recipe_list)
 
-@app.route('/listingdetails', methods=['GET']) # Get recommended list of recipes depending on the expiring foods. done
+@app.route('/recom', methods=['POST'])
+def getspecificRecipe():
+    data = json.loads(request.data.decode('utf-8'))
+    SPingredient = data['item']
+    recom_recipe_list = []
+    db = mysql.connector.connect(**config)
+    cursor = db.cursor(buffered=True)
+    expiring_lst = []
+    check = ("SELECT item_name FROM Storage WHERE expiry_date = %s ORDER BY expiry_date")
+    cursor.execute(check, (tomorrow,))
+    for (item_name,) in cursor:
+        expiring_lst.append(item_name)
+    print('Expiring_lst:', expiring_lst)
+    inventory_lst = []
+    check = ("SELECT item_name FROM Storage ORDER BY expiry_date")
+    cursor.execute(check)
+    for (item_name,) in cursor:
+        item = item_name
+        inventory_lst.append(item)
+    print("Inventory_lst:", inventory_lst)
+    recipe_lst = []
+    check = ("SELECT id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4 FROM Recipe ORDER BY id_Recipe")
+    cursor.execute(check)
+    for (id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4) in cursor:
+        if ingredient_1 == None:
+            ingredient_1 = 'Null'
+        if ingredient_2 == None:
+            ingredient_2 = 'Null'
+        if ingredient_3 == None:
+            ingredient_3 = 'Null'
+        if ingredient_4 == None:
+            ingredient_4 = 'Null'
+        a_recipe = {'id':id_Recipe, 'name':recipe_name, 'ingredient':[ingredient_1, ingredient_2, ingredient_3, ingredient_4]}
+        recipe_lst.append(a_recipe)
+    print('Recipe_lst:', recipe_lst)
+    for recipe in recipe_lst:
+        for item in expiring_lst:
+            if item in recipe['ingredient']:
+                if all(SPingredient in recipe['ingredient'] and foo in inventory_lst for foo in [x for x in recipe['ingredient'] if x != "Null"]):
+                    print(recipe)
+                    if recipe not in recom_recipe_list:
+                        recom_recipe_list.append(recipe) 
+    return json.dumps(recom_recipe_list)
+
+@app.route('/listingdetails', methods=['GET']) 
 def getExpiry():
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
