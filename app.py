@@ -363,11 +363,11 @@ def getExpiry():
     check = ("SELECT id_Storage, item_name, expiry_date, quantity FROM Storage WHERE expiry_date < %s ORDER BY expiry_date")
     print(threedays)
     cursor.execute(check, (threedays,))
-    for (id_Storage, item_name, expiry_date, quantity) in cursor:
+    for (id_Storage, item_name, expiry_date, quantity,) in cursor:
         item = {'id':id_Storage,'item':item_name, "expiry_date":str(expiry_date), "amount":quantity}
         expiring_list.append(item) 
     db.close()
-    return expiring_list
+    return json.dumps(expiring_list)
 
 
 if __name__ == "__main__":
