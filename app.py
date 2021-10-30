@@ -172,7 +172,7 @@ def updateItem():
     db.commit()
     db.close()
     print("Updated an existing item: {} of {} expiring by {:%d %b %Y}.".format(item, amount, date))
-    return data
+    return json.dumps(data)
 
 @app.route('/recipes', methods=['GET']) # Get the list of recipes in the database. done
 def checkRecipe():
