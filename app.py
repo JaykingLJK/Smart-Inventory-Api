@@ -158,6 +158,20 @@ def deleteItem():
         db.close()
         return json.dumps(data)
 
+@app.route('/listingdetails', methods=['GET']) 
+def getExpiry():
+    db = mysql.connector.connect(**config)
+    cursor = db.cursor(buffered=True)
+    expiring_list = []
+    check = ("SELECT id_Storage, item_name, expiry_date, quantity FROM Storage WHERE expiry_date < %s ORDER BY expiry_date")
+    print(threedays)
+    cursor.execute(check, (threedays,))
+    for (id_Storage, item_name, expiry_date, quantity,) in cursor:
+        item = {'id':id_Storage,'item':item_name, "expiry_date":str(expiry_date), "amount":quantity}
+        expiring_list.append(item) 
+    db.close()
+    return json.dumps(expiring_list)
+
 @app.route('/listings', methods=['PUT']) # Change the information of a listing. done
 def updateItem():
     data = json.loads(request.data.decode('utf-8'))
@@ -179,9 +193,9 @@ def checkRecipe():
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
     recipe_list = []
-    check = ("SELECT id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4 FROM Recipe ORDER BY id_Recipe")
+    check = ("SELECT id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4, introduction FROM Recipe ORDER BY id_Recipe")
     cursor.execute(check)
-    for (id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4) in cursor:
+    for (id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4, introduction) in cursor:
         if ingredient_1 == None:
             ingredient_1 = 'Null'
         if ingredient_2 == None:
@@ -190,7 +204,7 @@ def checkRecipe():
             ingredient_3 = 'Null'
         if ingredient_4 == None:
             ingredient_4 = 'Null'
-        a_recipe = {'id':id_Recipe, 'name':recipe_name, 'ingredient_1':ingredient_1, 'ingredient_2':ingredient_2, 'ingredient_3':ingredient_3, 'ingredient_4':ingredient_4}
+        a_recipe = {'id':id_Recipe, 'name':recipe_name, 'ingredient':[ingredient_1, ingredient_2, ingredient_3, ingredient_4], "introduction":introduction}
         recipe_list.append(a_recipe)
     db.commit()
     db.close()
@@ -200,10 +214,11 @@ def checkRecipe():
 def addRecipe():
     data = json.loads(request.data.decode('utf-8'))
     name = data['name']
-    ingredient_1 = data['ingredient_1']
-    ingredient_2 = data['ingredient_2']
-    ingredient_3 = data['ingredient_3']
-    ingredient_4 = data['ingredient_4']
+    ingredient_1 = data['ingredient'][0]
+    ingredient_2 = data['ingredient'][1]
+    ingredient_3 = data['ingredient'][2]
+    ingredient_4 = data['ingredient'][3]
+    introduction = data['introduction']
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
     # check if the recipe exists or not
@@ -247,10 +262,11 @@ def updateRecipe():
     data = json.loads(request.data.decode('utf-8'))
     id_Recipe = data['id']
     name = data['name']
-    ingredient_1 = data['ingredient_1']
-    ingredient_2 = data['ingredient_2']
-    ingredient_3 = data['ingredient_3']
-    ingredient_4 = data['ingredient_4']
+    ingredient_1 = data['ingredient'][0]
+    ingredient_2 = data['ingredient'][1]
+    ingredient_3 = data['ingredient'][2]
+    ingredient_4 = data['ingredient'][3]
+    introduction = data['introduction']
     db = mysql.connector.connect(**config)
     cursor = db.cursor(buffered=True)
     # check if the recipe exists or not
@@ -258,8 +274,8 @@ def updateRecipe():
     cursor.execute(check, (id_Recipe,))
     have = cursor.fetchall()
     if have:
-        query = ("UPDATE Recipe SET recipe_name = %s, ingredient_1 = %s, ingredient_2 = %s, ingredient_3 = %s, ingredient_4 = %s WHERE id_Recipe = %s")
-        cursor.execute(query, (name, ingredient_1, ingredient_2, ingredient_3, ingredient_4, id_Recipe))
+        query = ("UPDATE Recipe SET recipe_name = %s, ingredient_1 = %s, ingredient_2 = %s, ingredient_3 = %s, ingredient_4 = %s, introduction = %s WHERE id_Recipe = %s")
+        cursor.execute(query, (name, ingredient_1, ingredient_2, ingredient_3, ingredient_4, introduction, id_Recipe))
         db.commit()
         print("Changed an existing recipe: {} needs {}, {}, {}, {}.".format(name, ingredient_1, ingredient_2, ingredient_3, ingredient_4))
         db.close()
@@ -288,9 +304,9 @@ def recomRecipe():
         inventory_lst.append(item)
     print("Inventory_lst:", inventory_lst)
     recipe_lst = []
-    check = ("SELECT id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4 FROM Recipe ORDER BY id_Recipe")
+    check = ("SELECT id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4, introduction FROM Recipe ORDER BY id_Recipe")
     cursor.execute(check)
-    for (id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4) in cursor:
+    for (id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4, introduction) in cursor:
         if ingredient_1 == None:
             ingredient_1 = 'Null'
         if ingredient_2 == None:
@@ -299,7 +315,7 @@ def recomRecipe():
             ingredient_3 = 'Null'
         if ingredient_4 == None:
             ingredient_4 = 'Null'
-        a_recipe = {'id':id_Recipe, 'name':recipe_name, 'ingredient':[ingredient_1, ingredient_2, ingredient_3, ingredient_4]}
+        a_recipe = {'id':id_Recipe, 'name':recipe_name, 'ingredient':[ingredient_1, ingredient_2, ingredient_3, ingredient_4], "introduction": introduction}
         recipe_lst.append(a_recipe)
     print('Recipe_lst:', recipe_lst)
     for recipe in recipe_lst:
@@ -332,9 +348,9 @@ def getspecificRecipe():
         inventory_lst.append(item)
     print("Inventory_lst:", inventory_lst)
     recipe_lst = []
-    check = ("SELECT id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4 FROM Recipe ORDER BY id_Recipe")
+    check = ("SELECT id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4, introduction FROM Recipe ORDER BY id_Recipe")
     cursor.execute(check)
-    for (id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4) in cursor:
+    for (id_Recipe, recipe_name, ingredient_1, ingredient_2, ingredient_3, ingredient_4, introduction) in cursor:
         if ingredient_1 == None:
             ingredient_1 = 'Null'
         if ingredient_2 == None:
@@ -343,7 +359,7 @@ def getspecificRecipe():
             ingredient_3 = 'Null'
         if ingredient_4 == None:
             ingredient_4 = 'Null'
-        a_recipe = {'id':id_Recipe, 'name':recipe_name, 'ingredient':[ingredient_1, ingredient_2, ingredient_3, ingredient_4]}
+        a_recipe = {'id':id_Recipe, 'name':recipe_name, 'ingredient':[ingredient_1, ingredient_2, ingredient_3, ingredient_4], "introduction":introduction}
         recipe_lst.append(a_recipe)
     print('Recipe_lst:', recipe_lst)
     for recipe in recipe_lst:
@@ -354,20 +370,6 @@ def getspecificRecipe():
                     if recipe not in recom_recipe_list:
                         recom_recipe_list.append(recipe) 
     return json.dumps(recom_recipe_list)
-
-@app.route('/listingdetails', methods=['GET']) 
-def getExpiry():
-    db = mysql.connector.connect(**config)
-    cursor = db.cursor(buffered=True)
-    expiring_list = []
-    check = ("SELECT id_Storage, item_name, expiry_date, quantity FROM Storage WHERE expiry_date < %s ORDER BY expiry_date")
-    print(threedays)
-    cursor.execute(check, (threedays,))
-    for (id_Storage, item_name, expiry_date, quantity,) in cursor:
-        item = {'id':id_Storage,'item':item_name, "expiry_date":str(expiry_date), "amount":quantity}
-        expiring_list.append(item) 
-    db.close()
-    return json.dumps(expiring_list)
 
 
 if __name__ == "__main__":
